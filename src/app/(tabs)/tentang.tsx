@@ -5,7 +5,9 @@ import { typeScale, spacing } from "../../constants/styles";
 
 export default function TabTentang() {
     return (
-        <SafeAreaView style={{ flex: 1, padding: spacing.sedang }}>
+        <SafeAreaView 
+        edges={["bottom", "left", "right"]}
+        style={{ flex: 1, padding: spacing.sedang }}>
             <Text
                 accessibilityLabel="Judul halaman Tentang"
                 style={{
