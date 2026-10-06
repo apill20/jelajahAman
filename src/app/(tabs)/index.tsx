@@ -7,6 +7,10 @@ import {
   Button,
   TouchableOpacity,
 } from "react-native";
+import {
+  mintaIzinLokasi,
+  ambilKoordinatSaatIni,
+} from "../../services/locationService";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import SearchBox from "../../components/SearchBox";
@@ -34,6 +38,7 @@ export default function HalamanUtama() {
 
   const teksTertunda = useDebounce(teksCari, 500);
   const requestIdRef = useRef(0); // pencegah race condition
+  const [pesanLokasi, setPesanLokasi] = useState<string | null>(null);
 
   useEffect(() => {
     if (teksTertunda.trim().length === 0) {
@@ -68,9 +73,37 @@ export default function HalamanUtama() {
     }
   }
 
+  async function gunakanLokasiSaatIni() {
+    const status = await mintaIzinLokasi();
+    if (status === "denied") {
+      setPesanLokasi(
+        "Izin lokasi ditolak. Silakan cari kota secara manual di atas.",
+      );
+      return;
+    }
+    if (status === "unavailable") {
+      setPesanLokasi(
+        "Layanan lokasi tidak aktif di perangkat ini. Silakan cari kota secara manual.",
+      );
+      return;
+    }
+    setPesanLokasi(null);
+    const koordinat = await ambilKoordinatSaatIni();
+    pilihKota({
+      id: -1,
+      name: "Lokasi Saat Ini",
+      latitude: koordinat.latitude,
+      longitude: koordinat.longitude,
+      country: "",
+    });
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, padding: 16, gap: 16 }}>
       <SearchBox onCari={setTeksCari} />
+
+      <Button title="Gunakan Lokasi Saat Ini" onPress={gunakanLokasiSaatIni} />
+      {pesanLokasi && <Text>{pesanLokasi}</Text>}
 
       {hasilPencarian.map((kota) => (
         <TouchableOpacity key={kota.id} onPress={() => pilihKota(kota)}>
